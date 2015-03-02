@@ -27,12 +27,28 @@ LOCAL_UNSTRIPPED_PATH := $(TARGET_ROOT_OUT_SBIN_UNSTRIPPED)
 
 LOCAL_CFLAGS := -D__STDC_LIMIT_MACROS -Werror
 
+HEALTHD_CHARGER_DEFINES := RED_LED_PATH \
+    GREEN_LED_PATH \
+    BLUE_LED_PATH \
+    BACKLIGHT_PATH \
+    CHARGING_ENABLED_PATH
+
+$(foreach healthd_charger_define,$(HEALTHD_CHARGER_DEFINES), \
+  $(if $($(healthd_charger_define)), \
+    $(eval LOCAL_CFLAGS += -D$(healthd_charger_define)=\"$($(healthd_charger_define))\") \
+  ) \
+)
+
 ifeq ($(strip $(BOARD_CHARGER_DISABLE_INIT_BLANK)),true)
 LOCAL_CFLAGS += -DCHARGER_DISABLE_INIT_BLANK
 endif
 
 ifeq ($(strip $(BOARD_CHARGER_ENABLE_SUSPEND)),true)
 LOCAL_CFLAGS += -DCHARGER_ENABLE_SUSPEND
+endif
+
+ifeq ($(strip $(BOARD_CHARGER_SHOW_PERCENTAGE)),true)
+LOCAL_CFLAGS += -DCHARGER_SHOW_PERCENTAGE
 endif
 
 LOCAL_C_INCLUDES := $(call project-path-for,recovery)

@@ -41,8 +41,6 @@
 #include <sys/prctl.h>
 #include <getopt.h>
 #include <selinux/selinux.h>
-#else
-#include "usb_vendors.h"
 #endif
 
 #if ADB_TRACE
@@ -1318,7 +1316,6 @@ int adb_main(int is_daemon, int server_port)
 #ifdef WORKAROUND_BUG6558362
     if(is_daemon) adb_set_affinity();
 #endif
-    usb_vendors_init();
     usb_init();
     local_init(DEFAULT_ADB_LOCAL_TRANSPORT_PORT);
     adb_auth_init();
@@ -1329,8 +1326,12 @@ int adb_main(int is_daemon, int server_port)
         exit(1);
     }
 #else
-    property_get("ro.adb.secure", value, "0");
-    auth_enabled = !strcmp(value, "1");
+    // Override auth in factory test mode
+    property_get("ro.boot.ftm", value, "0");
+    if (!strcmp(value, "0")) {
+        property_get("ro.adb.secure", value, "0");
+        auth_enabled = !strcmp(value, "1");
+    }
     if (auth_enabled)
         adb_auth_init();
 
